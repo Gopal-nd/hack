@@ -12,7 +12,7 @@ contract DevBooking {
     struct Booking {
         address customer;
         uint256 amountPaid; // in wei
-        uint256 hoursBooked;
+        uint256 hoursBooked; // Renamed from "hours"
         uint256 timestamp;
     }
 
@@ -24,7 +24,7 @@ contract DevBooking {
     // Events
     event DeveloperRegistered(address indexed devAddress, string name, uint256 hourlyRate);
     event DeveloperUpdated(address indexed devAddress, uint256 hourlyRate, bool available);
-    event BookingCreated(address indexed customer, address indexed devAddress, uint256 amountPaid, uint256 hours);
+    event BookingCreated(address indexed customer, address indexed devAddress, uint256 amountPaid, uint256 hoursBooked);
 
     // Register a developer
     function registerDeveloper(string memory _name, uint256 _hourlyRate) external {
@@ -56,13 +56,13 @@ contract DevBooking {
     }
 
     // Book a developer
-    function bookDeveloper(address _devAddress, uint256 _hours) external payable {
+    function bookDeveloper(address _devAddress, uint256 _hoursBooked) external payable {
         Developer storage dev = developers[_devAddress];
         require(dev.wallet != address(0), "Developer not registered");
         require(dev.available, "Developer not available");
-        require(_hours > 0, "Must book at least 1 hour");
+        require(_hoursBooked > 0, "Must book at least 1 hour");
 
-        uint256 totalCost = dev.hourlyRate * _hours;
+        uint256 totalCost = dev.hourlyRate * _hoursBooked;
         require(msg.value >= totalCost, "Insufficient payment");
 
         // Transfer payment to the developer
@@ -72,11 +72,11 @@ contract DevBooking {
         bookings[_devAddress].push(Booking({
             customer: msg.sender,
             amountPaid: totalCost,
-            hoursBooked: _hours,
+            hoursBooked: _hoursBooked,
             timestamp: block.timestamp
         }));
 
-        emit BookingCreated(msg.sender, _devAddress, totalCost, _hours);
+        emit BookingCreated(msg.sender, _devAddress, totalCost, _hoursBooked);
     }
 
     // Get all developers
